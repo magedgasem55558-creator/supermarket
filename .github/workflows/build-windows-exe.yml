@@ -70,7 +70,7 @@ jobs:
             -Recurse `
             -Force
 
-      # 10. إنشاء ملف Inno Setup
+      # 10. إنشاء ملف Inno Setup (تم تعديل المسارات هنا)
       - name: Create Inno Setup Script
         shell: pwsh
         run: |
@@ -92,7 +92,7 @@ jobs:
 
           DefaultGroupName={#MyAppName}
 
-          OutputDir=installer
+          OutputDir=.
           OutputBaseFilename=Supermarket-Setup
 
           Compression=lzma
@@ -118,7 +118,7 @@ jobs:
             Flags: unchecked
 
           [Files]
-          Source: "installer\app\*"; \
+          Source: "app\*"; \
             DestDir: "{app}"; \
             Flags: ignoreversion recursesubdirs createallsubdirs
 
