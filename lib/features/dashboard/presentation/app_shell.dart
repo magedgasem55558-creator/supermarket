@@ -4,6 +4,8 @@ import '../../categories/presentation/categories_page.dart';
 import '../../products/presentation/products_page.dart';
 import '../../sales/pages/sales_page.dart';
 import '../../customers/pages/customers_debts_page.dart';
+import '../../inventory/pages/inventory_management_page.dart';
+
 import 'dashboard_page.dart';
 
 class AppShell extends StatefulWidget {
@@ -31,9 +33,7 @@ class _AppShellState extends State<AppShell> {
     ProductsPage(),
 
     // 3
-    PlaceholderPage(
-      title: 'المخزون',
-    ),
+    InventoryManagementPage(),
 
     // 4
     PlaceholderPage(
