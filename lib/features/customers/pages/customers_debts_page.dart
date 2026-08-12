@@ -6,17 +6,15 @@ import '../../../database/app_database.dart';
 import '../../../database/daos/customer_transactions_dao.dart';
 import '../../../database/daos/customers_dao.dart';
 import '../../../providers/database_providers.dart';
-class CustomersDebtsPage
-    extends ConsumerStatefulWidget {
+
+class CustomersDebtsPage extends ConsumerStatefulWidget {
   const CustomersDebtsPage({
     super.key,
   });
 
   @override
-
-  ConsumerState<CustomersDebtsPage>
-      createState() =>
-          _CustomersDebtsPageState();
+  ConsumerState<CustomersDebtsPage> createState() =>
+      _CustomersDebtsPageState();
 }
 
 class _CustomersDebtsPageState
@@ -29,37 +27,229 @@ class _CustomersDebtsPageState
     setState(() {});
   }
 
+  // ============================================================
+  // إضافة عميل
+  // ============================================================
+
+  Future<void> _showAddCustomerDialog(
+    CustomersDao customersDao,
+  ) async {
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final addressController = TextEditingController();
+
+    final formKey = GlobalKey<FormState>();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        bool isSaving = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> saveCustomer() async {
+              if (!formKey.currentState!.validate()) {
+                return;
+              }
+
+              setDialogState(() {
+                isSaving = true;
+              });
+
+              try {
+                await customersDao.insertCustomer(
+                  CustomersCompanion.insert(
+                    name: nameController.text.trim(),
+                    phone: Value(
+                      phoneController.text.trim().isEmpty
+                          ? null
+                          : phoneController.text.trim(),
+                    ),
+                    address: Value(
+                      addressController.text.trim().isEmpty
+                          ? null
+                          : addressController.text.trim(),
+                    ),
+                  ),
+                );
+
+                if (!dialogContext.mounted) return;
+
+                Navigator.of(dialogContext).pop(true);
+              } catch (e) {
+                setDialogState(() {
+                  isSaving = false;
+                });
+
+                if (!dialogContext.mounted) return;
+
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'حدث خطأ أثناء إضافة العميل: $e',
+                    ),
+                  ),
+                );
+              }
+            }
+
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.person_add),
+                  SizedBox(width: 10),
+                  Text('إضافة عميل جديد'),
+                ],
+              ),
+              content: SizedBox(
+                width: 450,
+                child: Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          controller: nameController,
+                          autofocus: true,
+                          decoration: const InputDecoration(
+                            labelText: 'اسم العميل',
+                            hintText: 'أدخل اسم العميل',
+                            prefixIcon: Icon(Icons.person),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null ||
+                                value.trim().isEmpty) {
+                              return 'يرجى إدخال اسم العميل';
+                            }
+
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        TextFormField(
+                          controller: phoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'رقم الهاتف',
+                            hintText: 'اختياري',
+                            prefixIcon: Icon(Icons.phone),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        TextFormField(
+                          controller: addressController,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'العنوان',
+                            hintText: 'اختياري',
+                            prefixIcon: Icon(Icons.location_on),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving
+                      ? null
+                      : () {
+                          Navigator.of(dialogContext).pop(false);
+                        },
+                  child: const Text('إلغاء'),
+                ),
+                FilledButton.icon(
+                  onPressed: isSaving ? null : saveCustomer,
+                  icon: isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.save),
+                  label: Text(
+                    isSaving ? 'جاري الحفظ...' : 'حفظ العميل',
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    nameController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+
+    if (result == true && mounted) {
+      setState(() {});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تمت إضافة العميل بنجاح'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final customersDao =
-        ref.watch(customersDaoProvider);
+    final customersDao = ref.watch(
+      customersDaoProvider,
+    );
 
-    final transactionsDao =
-        ref.watch(
-          customerTransactionsDaoProvider,
-        );
+    final transactionsDao = ref.watch(
+      customerTransactionsDaoProvider,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title:
-            const Text('إدارة العملاء والمدينين'),
+        title: const Text(
+          'إدارة العملاء والمدينين',
+        ),
         actions: [
+          // زر إضافة عميل
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+            ),
+            child: FilledButton.icon(
+              onPressed: () =>
+                  _showAddCustomerDialog(customersDao),
+              icon: const Icon(Icons.person_add),
+              label: const Text('إضافة عميل'),
+            ),
+          ),
+
           IconButton(
             tooltip: 'تحديث',
             onPressed: _refresh,
             icon: const Icon(Icons.refresh),
           ),
+
+          const SizedBox(width: 8),
         ],
       ),
-      body: FutureBuilder<
-          List<Customer>>(
+
+      body: FutureBuilder<List<Customer>>(
         future: customersDao.getAll(),
         builder: (context, snapshot) {
           if (snapshot.connectionState ==
               ConnectionState.waiting) {
             return const Center(
-              child:
-                  CircularProgressIndicator(),
+              child: CircularProgressIndicator(),
             );
           }
 
@@ -71,8 +261,7 @@ class _CustomersDebtsPageState
             );
           }
 
-          final customers =
-              snapshot.data ?? [];
+          final customers = snapshot.data ?? [];
 
           return _buildPage(
             customers,
@@ -88,8 +277,7 @@ class _CustomersDebtsPageState
     CustomerTransactionsDao transactionsDao,
   ) {
     final filtered = customers.where((customer) {
-      final query =
-          _search.trim().toLowerCase();
+      final query = _search.trim().toLowerCase();
 
       if (query.isEmpty) {
         return true;
@@ -99,6 +287,7 @@ class _CustomersDebtsPageState
               .toLowerCase()
               .contains(query) ||
           (customer.phone ?? '')
+              .toLowerCase()
               .contains(query);
     }).toList();
 
@@ -112,29 +301,35 @@ class _CustomersDebtsPageState
                 _search = value;
               });
             },
-            decoration: const InputDecoration(
-              hintText:
-                  'ابحث باسم العميل أو الهاتف...',
-              prefixIcon:
-                  Icon(Icons.search),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: 'ابحث باسم العميل أو الهاتف...',
+              prefixIcon: const Icon(Icons.search),
+              border: const OutlineInputBorder(),
+              suffixIcon: _search.isNotEmpty
+                  ? IconButton(
+                      tooltip: 'مسح البحث',
+                      onPressed: () {
+                        setState(() {
+                          _search = '';
+                        });
+                      },
+                      icon: const Icon(Icons.clear),
+                    )
+                  : null,
             ),
           ),
 
           const SizedBox(height: 20),
 
           Expanded(
-            child: FutureBuilder<
-                Map<int, double>>(
+            child: FutureBuilder<Map<int, double>>(
               future:
-                  transactionsDao
-                      .getAllCustomerDebts(),
+                  transactionsDao.getAllCustomerDebts(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState ==
                     ConnectionState.waiting) {
                   return const Center(
-                    child:
-                        CircularProgressIndicator(),
+                    child: CircularProgressIndicator(),
                   );
                 }
 
@@ -146,8 +341,7 @@ class _CustomersDebtsPageState
                   );
                 }
 
-                final debts =
-                    snapshot.data ?? {};
+                final debts = snapshot.data ?? {};
 
                 return _buildTable(
                   filtered,
@@ -168,12 +362,36 @@ class _CustomersDebtsPageState
     CustomerTransactionsDao dao,
   ) {
     if (customers.isEmpty) {
-      return const Center(
-        child: Text(
-          'لا يوجد عملاء',
-          style: TextStyle(
-            fontSize: 18,
-          ),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.people_outline,
+              size: 70,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'لا يوجد عملاء',
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () {
+                final customersDao = ref.read(
+                  customersDaoProvider,
+                );
+
+                _showAddCustomerDialog(
+                  customersDao,
+                );
+              },
+              icon: const Icon(Icons.person_add),
+              label: const Text('إضافة أول عميل'),
+            ),
+          ],
         ),
       );
     }
@@ -182,10 +400,12 @@ class _CustomersDebtsPageState
       clipBehavior: Clip.antiAlias,
       child: SingleChildScrollView(
         child: SingleChildScrollView(
-          scrollDirection:
-              Axis.horizontal,
+          scrollDirection: Axis.horizontal,
           child: DataTable(
             columnSpacing: 35,
+            headingRowHeight: 55,
+            dataRowMinHeight: 60,
+            dataRowMaxHeight: 70,
             columns: const [
               DataColumn(
                 label: Text('الرقم'),
@@ -207,8 +427,7 @@ class _CustomersDebtsPageState
               ),
             ],
             rows: customers.map((customer) {
-              final debt =
-                  debts[customer.id] ?? 0;
+              final debt = debts[customer.id] ?? 0;
 
               return DataRow(
                 cells: [
@@ -219,20 +438,23 @@ class _CustomersDebtsPageState
                   ),
 
                   DataCell(
-                    Text(customer.name),
-                  ),
-
-                  DataCell(
                     Text(
-                      customer.phone ??
-                          '—',
+                      customer.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
 
                   DataCell(
                     Text(
-                      customer.address ??
-                          '—',
+                      customer.phone ?? '—',
+                    ),
+                  ),
+
+                  DataCell(
+                    Text(
+                      customer.address ?? '—',
                     ),
                   ),
 
@@ -245,20 +467,17 @@ class _CustomersDebtsPageState
                         color: debt > 0
                             ? Colors.red
                             : Colors.green,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
 
                   DataCell(
                     Row(
-                      mainAxisSize:
-                          MainAxisSize.min,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          tooltip:
-                              'سجل الحركات',
+                          tooltip: 'سجل الحركات',
                           onPressed: () =>
                               _showTransactions(
                             customer,
@@ -278,11 +497,9 @@ class _CustomersDebtsPageState
                               dao,
                             ),
                             icon: const Icon(
-                              Icons
-                                  .payments,
+                              Icons.payments,
                             ),
-                            label:
-                                const Text(
+                            label: const Text(
                               'سداد',
                             ),
                           ),
@@ -298,16 +515,18 @@ class _CustomersDebtsPageState
     );
   }
 
+  // ============================================================
+  // سداد الدين
+  // ============================================================
+
   Future<void> _showPaymentDialog(
     Customer customer,
     double debt,
     CustomerTransactionsDao dao,
   ) async {
-    final controller =
-        TextEditingController();
+    final controller = TextEditingController();
 
-    final result =
-        await showDialog<double>(
+    final result = await showDialog<double>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -321,30 +540,25 @@ class _CustomersDebtsPageState
                 const TextInputType.numberWithOptions(
               decimal: true,
             ),
-            decoration:
-                InputDecoration(
+            decoration: InputDecoration(
               labelText: 'المبلغ',
               hintText:
                   'الدين الحالي: ${_formatMoney(debt)}',
-              border:
-                  const OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(context),
+              onPressed: () => Navigator.pop(context),
               child: const Text('إلغاء'),
             ),
             FilledButton(
               onPressed: () {
-                final amount =
-                    double.tryParse(
+                final amount = double.tryParse(
                   controller.text.trim(),
                 );
 
-                if (amount == null ||
-                    amount <= 0) {
+                if (amount == null || amount <= 0) {
                   return;
                 }
 
@@ -383,25 +597,29 @@ class _CustomersDebtsPageState
 
       setState(() {});
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('تم تسجيل السداد بنجاح'),
+          content: Text(
+            'تم تسجيل السداد بنجاح',
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('حدث خطأ: $e'),
+          content: Text(
+            'حدث خطأ: $e',
+          ),
         ),
       );
     }
   }
+
+  // ============================================================
+  // سجل حركات العميل
+  // ============================================================
 
   Future<void> _showTransactions(
     Customer customer,
@@ -431,64 +649,49 @@ class _CustomersDebtsPageState
                     ),
                   )
                 : ListView.separated(
-                    itemCount:
-                        transactions.length,
-                    separatorBuilder:
-                        (_, __) =>
-                            const Divider(),
-                    itemBuilder:
-                        (context, index) {
+                    itemCount: transactions.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(),
+                    itemBuilder: (context, index) {
                       final item =
-                          transactions[
-                              index];
+                          transactions[index];
 
                       final isSale =
-                          item.type ==
-                              'credit_sale';
+                          item.type == 'credit_sale';
 
                       final isPayment =
-                          item.type ==
-                              'payment';
+                          item.type == 'payment';
 
                       String title;
 
                       if (isSale) {
-                        title =
-                            'بيع آجل';
+                        title = 'بيع آجل';
                       } else if (isPayment) {
-                        title =
-                            'سداد';
+                        title = 'سداد';
                       } else {
-                        title =
-                            'مرتجع بيع';
+                        title = 'مرتجع بيع';
                       }
 
                       return ListTile(
                         leading: Icon(
                           isPayment
-                              ? Icons
-                                  .payments
-                              : Icons
-                                  .receipt_long,
+                              ? Icons.payments
+                              : Icons.receipt_long,
                           color: isPayment
                               ? Colors.green
                               : Colors.red,
                         ),
-                        title:
-                            Text(title),
-                        subtitle:
-                            Text(
+                        title: Text(title),
+                        subtitle: Text(
                           _formatDate(
                             item.createdAt,
                           ),
                         ),
-                        trailing:
-                            Text(
+                        trailing: Text(
                           _formatMoney(
                             item.amount,
                           ),
-                          style:
-                              const TextStyle(
+                          style: const TextStyle(
                             fontWeight:
                                 FontWeight.bold,
                           ),
@@ -501,14 +704,17 @@ class _CustomersDebtsPageState
             TextButton(
               onPressed: () =>
                   Navigator.pop(context),
-              child:
-                  const Text('إغلاق'),
+              child: const Text('إغلاق'),
             ),
           ],
         );
       },
     );
   }
+
+  // ============================================================
+  // تنسيق المبلغ
+  // ============================================================
 
   String _formatMoney(double value) {
     if (value == value.roundToDouble()) {
@@ -517,6 +723,10 @@ class _CustomersDebtsPageState
 
     return value.toStringAsFixed(2);
   }
+
+  // ============================================================
+  // تنسيق التاريخ
+  // ============================================================
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/'
