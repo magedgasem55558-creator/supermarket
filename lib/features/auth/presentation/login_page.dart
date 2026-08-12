@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../dashboard/presentation/app_shell.dart';
 import '../auth_providers.dart';
 
@@ -28,37 +29,56 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
 
+    if (_usernameController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
+      setState(() {
+        _errorMessage = 'أدخل اسم المستخدم وكلمة المرور';
+      });
+      return;
+    }
+
     setState(() {
       _loading = true;
       _errorMessage = null;
     });
 
-    final success = await ref.read(authControllerProvider).login(
-          username: _usernameController.text,
-          password: _passwordController.text,
-        );
+    try {
+      final success =
+          await ref.read(authControllerProvider).login(
+                username: _usernameController.text.trim(),
+                password: _passwordController.text,
+              );
 
-  if (!success) {
-  setState(() {
-    _errorMessage = 'اسم المستخدم أو كلمة المرور غير صحيحة';
-  });
+      if (!mounted) return;
 
-  return;
-}
+      if (!success) {
+        setState(() {
+          _loading = false;
+          _errorMessage =
+              'اسم المستخدم أو كلمة المرور غير صحيحة';
+        });
+        return;
+      }
 
-if (!mounted) return;
+      // تسجيل الدخول نجح
+      setState(() {
+        _loading = false;
+      });
 
-Navigator.of(context).pushReplacement(
-  MaterialPageRoute(
-    builder: (_) => const AppShell(),
-  ),
-);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const AppShell(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم تسجيل الدخول بنجاح'),
-      ),
-    );
+      setState(() {
+        _loading = false;
+        _errorMessage =
+            'حدث خطأ أثناء تسجيل الدخول';
+      });
+    }
   }
 
   @override
@@ -80,7 +100,9 @@ Navigator.of(context).pushReplacement(
                     Icons.store,
                     size: 64,
                   ),
+
                   const SizedBox(height: 20),
+
                   const Text(
                     'Supermarket',
                     style: TextStyle(
@@ -88,14 +110,18 @@ Navigator.of(context).pushReplacement(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                   const SizedBox(height: 8),
+
                   const Text(
                     'تسجيل الدخول',
                     style: TextStyle(
                       fontSize: 18,
                     ),
                   ),
+
                   const SizedBox(height: 30),
+
                   TextField(
                     controller: _usernameController,
                     enabled: !_loading,
@@ -106,7 +132,9 @@ Navigator.of(context).pushReplacement(
                       border: OutlineInputBorder(),
                     ),
                   ),
+
                   const SizedBox(height: 16),
+
                   TextField(
                     controller: _passwordController,
                     enabled: !_loading,
@@ -117,11 +145,14 @@ Navigator.of(context).pushReplacement(
                       prefixIcon: const Icon(Icons.lock),
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                        onPressed: _loading
+                            ? null
+                            : () {
+                                setState(() {
+                                  _obscurePassword =
+                                      !_obscurePassword;
+                                });
+                              },
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility
@@ -130,30 +161,42 @@ Navigator.of(context).pushReplacement(
                       ),
                     ),
                   ),
+
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 16),
+
                     Text(
                       _errorMessage!,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                        color:
+                            Theme.of(context)
+                                .colorScheme
+                                .error,
                       ),
                     ),
                   ],
+
                   const SizedBox(height: 24),
+
                   SizedBox(
                     width: double.infinity,
                     height: 48,
                     child: FilledButton(
-                      onPressed: _loading ? null : _login,
+                      onPressed:
+                          _loading ? null : _login,
                       child: _loading
                           ? const SizedBox(
                               width: 22,
                               height: 22,
-                              child: CircularProgressIndicator(
+                              child:
+                                  CircularProgressIndicator(
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text('تسجيل الدخول'),
+                          : const Text(
+                              'تسجيل الدخول',
+                            ),
                     ),
                   ),
                 ],
