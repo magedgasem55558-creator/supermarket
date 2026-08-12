@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../categories/presentation/categories_page.dart';
 import '../../products/presentation/products_page.dart';
 import '../../sales/pages/sales_page.dart';
-import '../../customers/pages/customers_page.dart';
+import '../../customers/pages/customers_debts_page.dart';
 import 'dashboard_page.dart';
 
 class AppShell extends StatefulWidget {
