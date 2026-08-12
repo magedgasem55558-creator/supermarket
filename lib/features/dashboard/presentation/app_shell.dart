@@ -46,7 +46,7 @@ class _AppShellState extends State<AppShell> {
     ),
 
     // 6
-    CustomersPage(),
+    CustomersDebtsPage(),
 
     // 7
     PlaceholderPage(
