@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../categories/presentation/categories_page.dart';
+import '../../products/presentation/products_page.dart';
+import '../../sales/presentation/sales_page.dart';
+import '../../customers/presentation/customers_page.dart';
+
 import 'dashboard_page.dart';
 
 class AppShell extends StatefulWidget {
@@ -12,21 +17,72 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
 
- final List<Widget> _pages = const [
-  DashboardPage(),
-  PlaceholderPage(title: 'نقطة البيع'),
-  CategoriesPage(),
-  PlaceholderPage(title: 'المخزون'),
-  PlaceholderPage(title: 'المبيعات'),
-  PlaceholderPage(title: 'المشتريات'),
-  PlaceholderPage(title: 'العملاء'),
-  PlaceholderPage(title: 'الموردون'),
-  PlaceholderPage(title: 'المصروفات'),
-  PlaceholderPage(title: 'الصندوق'),
-  PlaceholderPage(title: 'التقارير'),
-  PlaceholderPage(title: 'المستخدمون'),
-  PlaceholderPage(title: 'الإعدادات'),
-];
+  // ============================================================
+  // صفحات التطبيق
+  // ============================================================
+
+  final List<Widget> _pages = const [
+    // 0
+    DashboardPage(),
+
+    // 1
+    SalesPage(),
+
+    // 2
+    ProductsPage(),
+
+    // 3
+    PlaceholderPage(
+      title: 'المخزون',
+    ),
+
+    // 4
+    PlaceholderPage(
+      title: 'المبيعات',
+    ),
+
+    // 5
+    PlaceholderPage(
+      title: 'المشتريات',
+    ),
+
+    // 6
+    CustomersPage(),
+
+    // 7
+    PlaceholderPage(
+      title: 'الموردون',
+    ),
+
+    // 8
+    PlaceholderPage(
+      title: 'المصروفات',
+    ),
+
+    // 9
+    PlaceholderPage(
+      title: 'الصندوق',
+    ),
+
+    // 10
+    PlaceholderPage(
+      title: 'التقارير',
+    ),
+
+    // 11
+    PlaceholderPage(
+      title: 'المستخدمون',
+    ),
+
+    // 12
+    PlaceholderPage(
+      title: 'الإعدادات',
+    ),
+  ];
+
+  // ============================================================
+  // القائمة الجانبية
+  // ============================================================
 
   final List<NavigationRailDestination> _destinations = const [
     NavigationRailDestination(
@@ -34,61 +90,73 @@ class _AppShellState extends State<AppShell> {
       selectedIcon: Icon(Icons.dashboard),
       label: Text('الرئيسية'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.point_of_sale_outlined),
       selectedIcon: Icon(Icons.point_of_sale),
       label: Text('نقطة البيع'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.inventory_2_outlined),
       selectedIcon: Icon(Icons.inventory_2),
       label: Text('المنتجات'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.warehouse_outlined),
       selectedIcon: Icon(Icons.warehouse),
       label: Text('المخزون'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.receipt_long_outlined),
       selectedIcon: Icon(Icons.receipt_long),
       label: Text('المبيعات'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.shopping_cart_outlined),
       selectedIcon: Icon(Icons.shopping_cart),
       label: Text('المشتريات'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.people_outline),
       selectedIcon: Icon(Icons.people),
       label: Text('العملاء'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.local_shipping_outlined),
       selectedIcon: Icon(Icons.local_shipping),
       label: Text('الموردون'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.money_off_outlined),
       selectedIcon: Icon(Icons.money_off),
       label: Text('المصروفات'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.account_balance_wallet_outlined),
       selectedIcon: Icon(Icons.account_balance_wallet),
       label: Text('الصندوق'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.bar_chart_outlined),
       selectedIcon: Icon(Icons.bar_chart),
       label: Text('التقارير'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.manage_accounts_outlined),
       selectedIcon: Icon(Icons.manage_accounts),
       label: Text('المستخدمون'),
     ),
+
     NavigationRailDestination(
       icon: Icon(Icons.settings_outlined),
       selectedIcon: Icon(Icons.settings),
@@ -105,15 +173,22 @@ class _AppShellState extends State<AppShell> {
           children: [
             NavigationRail(
               selectedIndex: _selectedIndex,
+
               onDestinationSelected: (index) {
                 setState(() {
                   _selectedIndex = index;
                 });
               },
+
               labelType: NavigationRailLabelType.all,
+
               destinations: _destinations,
             ),
-            const VerticalDivider(width: 1),
+
+            const VerticalDivider(
+              width: 1,
+            ),
+
             Expanded(
               child: _pages[_selectedIndex],
             ),
@@ -123,6 +198,10 @@ class _AppShellState extends State<AppShell> {
     );
   }
 }
+
+// ============================================================
+// صفحة مؤقتة للأقسام التي لم يتم إنشاؤها بعد
+// ============================================================
 
 class PlaceholderPage extends StatelessWidget {
   final String title;
