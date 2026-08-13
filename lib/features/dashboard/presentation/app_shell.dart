@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 
-import '../../categories/presentation/categories_page.dart';
-import '../../products/presentation/products_page.dart';
-import '../../sales/pages/sales_page.dart';
-import '../../customers/pages/customers_debts_page.dart';
+import '../../accounting/presentation/accounting_page.dart';
+import '../../backup/presentation/backup_restore_page.dart';
+import '../../catalog/presentation/catalog_page.dart';
+import '../../customers/presentation/customers_page.dart';
+import '../../expenses/presentation/expenses_page.dart';
 import '../../inventory/pages/inventory_management_page.dart';
-
+import '../../invoices/presentation/invoices_page.dart';
+import '../../purchases/presentation/purchases_page.dart';
+import '../../reports/presentation/reports_page.dart';
+import '../../returns/presentation/returns_page.dart';
+import '../../sales/pages/sales_page.dart';
+import '../../settings/invoice_settings_page.dart';
+import '../../suppliers/presentation/suppliers_page.dart';
+import '../../validation/presentation/automated_validation_page.dart';
+import '../../forecast/presentation/profit_forecast_page.dart';
 import 'dashboard_page.dart';
 
 class AppShell extends StatefulWidget {
@@ -18,208 +27,530 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
 
-  // ============================================================
-  // صفحات التطبيق
-  // ============================================================
+  late final List<_AppSection> _sections;
+  late final List<Widget> _pages;
 
-  final List<Widget> _pages = const [
-    // 0
-    DashboardPage(),
+  @override
+  void initState() {
+    super.initState();
 
-    // 1
-    SalesPage(),
+    _sections = [
+      _AppSection(
+        title: 'الرئيسية',
+        icon: Icons.dashboard_outlined,
+        selectedIcon: Icons.dashboard,
+        page: DashboardPage(
+          onNavigate: _navigateTo,
+        ),
+      ),
 
-    // 2
-    ProductsPage(),
+      _AppSection(
+        title: 'نقطة البيع',
+        icon: Icons.point_of_sale_outlined,
+        selectedIcon: Icons.point_of_sale,
+        page: const SalesPage(),
+      ),
 
-    // 3
-    InventoryManagementPage(),
+      _AppSection(
+        title: 'المنتجات',
+        icon: Icons.inventory_2_outlined,
+        selectedIcon: Icons.inventory_2,
+        page: const CatalogPage(),
+      ),
 
-    // 4
-    PlaceholderPage(
-      title: 'المبيعات',
-    ),
+      _AppSection(
+        title: 'المخزون',
+        icon: Icons.warehouse_outlined,
+        selectedIcon: Icons.warehouse,
+        page: const InventoryManagementPage(),
+      ),
 
-    // 5
-    PlaceholderPage(
-      title: 'المشتريات',
-    ),
+      _AppSection(
+        title: 'المبيعات',
+        icon: Icons.receipt_long_outlined,
+        selectedIcon: Icons.receipt_long,
+        page: const InvoicesPage(
+          initialType: 'sale',
+          title: 'المبيعات والفواتير',
+        ),
+      ),
 
-    // 6
-    CustomersDebtsPage(),
+      _AppSection(
+        title: 'المشتريات',
+        icon: Icons.shopping_cart_outlined,
+        selectedIcon: Icons.shopping_cart,
+        page: const PurchasesPage(),
+      ),
 
-    // 7
-    PlaceholderPage(
-      title: 'الموردون',
-    ),
+      _AppSection(
+        title: 'العملاء',
+        icon: Icons.people_outline,
+        selectedIcon: Icons.people,
+        page: const CustomersPage(),
+      ),
 
-    // 8
-    PlaceholderPage(
-      title: 'المصروفات',
-    ),
+      _AppSection(
+        title: 'الموردون',
+        icon: Icons.local_shipping_outlined,
+        selectedIcon: Icons.local_shipping,
+        page: const SuppliersPage(),
+      ),
 
-    // 9
-    PlaceholderPage(
-      title: 'الصندوق',
-    ),
+      _AppSection(
+        title: 'المصروفات',
+        icon: Icons.money_off_outlined,
+        selectedIcon: Icons.money_off,
+        page: const ExpensesPage(),
+      ),
 
-    // 10
-    PlaceholderPage(
-      title: 'التقارير',
-    ),
+      _AppSection(
+        title: 'الحسابات',
+        icon: Icons.account_balance_wallet_outlined,
+        selectedIcon: Icons.account_balance_wallet,
+        page: const AccountingPage(),
+      ),
 
-    // 11
-    PlaceholderPage(
-      title: 'المستخدمون',
-    ),
+      _AppSection(
+        title: 'النسخ والاستعادة',
+        icon: Icons.backup_outlined,
+        selectedIcon: Icons.backup,
+        page: const BackupRestorePage(),
+      ),
 
-    // 12
-    PlaceholderPage(
-      title: 'الإعدادات',
-    ),
-  ];
+      _AppSection(
+        title: 'التقارير',
+        icon: Icons.bar_chart_outlined,
+        selectedIcon: Icons.bar_chart,
+        page: const ReportsPage(),
+      ),
 
-  // ============================================================
-  // القائمة الجانبية
-  // ============================================================
+      _AppSection(
+        title: 'التحقق الآلي',
+        icon: Icons.fact_check_outlined,
+        selectedIcon: Icons.fact_check,
+        page: const AutomatedValidationPage(),
+      ),
 
-  final List<NavigationRailDestination> _destinations = const [
-    NavigationRailDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard),
-      label: Text('الرئيسية'),
-    ),
+      _AppSection(
+        title: 'المرتجعات',
+        icon: Icons.assignment_return_outlined,
+        selectedIcon: Icons.assignment_return,
+        page: const ReturnsPage(),
+      ),
 
-    NavigationRailDestination(
-      icon: Icon(Icons.point_of_sale_outlined),
-      selectedIcon: Icon(Icons.point_of_sale),
-      label: Text('نقطة البيع'),
-    ),
+      _AppSection(
+        title: 'الإعدادات',
+        icon: Icons.settings_outlined,
+        selectedIcon: Icons.settings,
+        page: const InvoiceSettingsPage(),
+      ),
 
-    NavigationRailDestination(
-      icon: Icon(Icons.inventory_2_outlined),
-      selectedIcon: Icon(Icons.inventory_2),
-      label: Text('المنتجات'),
-    ),
+      _AppSection(
+        title: 'كل الفواتير',
+        icon: Icons.receipt_outlined,
+        selectedIcon: Icons.receipt,
+        page: const InvoicesPage(),
+      ),
 
-    NavigationRailDestination(
-      icon: Icon(Icons.warehouse_outlined),
-      selectedIcon: Icon(Icons.warehouse),
-      label: Text('المخزون'),
-    ),
+      _AppSection(
+        title: 'تنبؤ الأرباح',
+        icon: Icons.insights_outlined,
+        selectedIcon: Icons.insights,
+        page: const ProfitForecastPage(),
+      ),
+    ];
 
-    NavigationRailDestination(
-      icon: Icon(Icons.receipt_long_outlined),
-      selectedIcon: Icon(Icons.receipt_long),
-      label: Text('المبيعات'),
-    ),
+    // إنشاء الصفحات مرة واحدة فقط.
+    //
+    // IndexedStack سيحافظ على الصفحات داخل شجرة الـ Widget
+    // وبالتالي يحافظ على حالتها أثناء التنقل.
+    _pages = _sections.map((section) => section.page).toList();
+  }
 
-    NavigationRailDestination(
-      icon: Icon(Icons.shopping_cart_outlined),
-      selectedIcon: Icon(Icons.shopping_cart),
-      label: Text('المشتريات'),
-    ),
+  void _navigateTo(int index) {
+    if (index < 0 || index >= _sections.length) {
+      return;
+    }
 
-    NavigationRailDestination(
-      icon: Icon(Icons.people_outline),
-      selectedIcon: Icon(Icons.people),
-      label: Text('العملاء'),
-    ),
+    if (_selectedIndex == index) {
+      return;
+    }
 
-    NavigationRailDestination(
-      icon: Icon(Icons.local_shipping_outlined),
-      selectedIcon: Icon(Icons.local_shipping),
-      label: Text('الموردون'),
-    ),
-
-    NavigationRailDestination(
-      icon: Icon(Icons.money_off_outlined),
-      selectedIcon: Icon(Icons.money_off),
-      label: Text('المصروفات'),
-    ),
-
-    NavigationRailDestination(
-      icon: Icon(Icons.account_balance_wallet_outlined),
-      selectedIcon: Icon(Icons.account_balance_wallet),
-      label: Text('الصندوق'),
-    ),
-
-    NavigationRailDestination(
-      icon: Icon(Icons.bar_chart_outlined),
-      selectedIcon: Icon(Icons.bar_chart),
-      label: Text('التقارير'),
-    ),
-
-    NavigationRailDestination(
-      icon: Icon(Icons.manage_accounts_outlined),
-      selectedIcon: Icon(Icons.manage_accounts),
-      label: Text('المستخدمون'),
-    ),
-
-    NavigationRailDestination(
-      icon: Icon(Icons.settings_outlined),
-      selectedIcon: Icon(Icons.settings),
-      label: Text('الإعدادات'),
-    ),
-  ];
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final currentSection = _sections[_selectedIndex];
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              selectedIndex: _selectedIndex,
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainerLowest,
+        body: SafeArea(
+          child: Row(
+            children: [
+              _buildNavigationRail(context),
 
-              onDestinationSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
+              const VerticalDivider(
+                width: 1,
+                thickness: 1,
+              ),
 
-              labelType: NavigationRailLabelType.all,
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildTopBar(
+                      context,
+                      currentSection,
+                    ),
 
-              destinations: _destinations,
-            ),
-
-            const VerticalDivider(
-              width: 1,
-            ),
-
-            Expanded(
-              child: _pages[_selectedIndex],
-            ),
-          ],
+                    Expanded(
+                      child: IndexedStack(
+                        index: _selectedIndex,
+                        children: _pages,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // Navigation Rail
+  // ============================================================
+
+  Widget _buildNavigationRail(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: 118,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: BorderDirectional(
+          start: BorderSide(
+            color: colorScheme.outlineVariant,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+
+          _buildAppLogo(context),
+
+          const SizedBox(height: 20),
+
+          Expanded(
+            child: Scrollbar(
+              thumbVisibility: true,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                itemCount: _sections.length,
+                itemBuilder: (context, index) {
+                  final section = _sections[index];
+
+                  return _buildNavigationItem(
+                    context,
+                    index,
+                    section,
+                  );
+                },
+              ),
+            ),
+          ),
+
+          _buildVersion(context),
+
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // Application Logo
+  // ============================================================
+
+  Widget _buildAppLogo(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: 54,
+      height: 54,
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(
+        Icons.storefront_rounded,
+        size: 30,
+        color: colorScheme.primary,
+      ),
+    );
+  }
+
+  // ============================================================
+  // Navigation Item
+  // ============================================================
+
+  Widget _buildNavigationItem(
+    BuildContext context,
+    int index,
+    _AppSection section,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final isSelected = _selectedIndex == index;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Tooltip(
+        message: section.title,
+        waitDuration: const Duration(milliseconds: 500),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => _navigateTo(index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? colorScheme.primaryContainer
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedScale(
+                    scale: isSelected ? 1.08 : 1,
+                    duration: const Duration(milliseconds: 180),
+                    child: Icon(
+                      isSelected
+                          ? section.selectedIcon
+                          : section.icon,
+                      size: 23,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    section.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // Top Bar
+  // ============================================================
+
+  Widget _buildTopBar(
+    BuildContext context,
+    _AppSection section,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      height: 72,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 24,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: colorScheme.outlineVariant,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            section.selectedIcon,
+            color: colorScheme.primary,
+            size: 25,
+          ),
+
+          const SizedBox(width: 12),
+
+          Text(
+            section.title,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+
+          const Spacer(),
+
+          _buildHeaderAction(
+            context,
+            icon: Icons.notifications_none_rounded,
+            tooltip: 'الإشعارات',
+            onPressed: () {},
+          ),
+
+          const SizedBox(width: 8),
+
+          _buildHeaderAction(
+            context,
+            icon: Icons.help_outline_rounded,
+            tooltip: 'المساعدة',
+            onPressed: () {},
+          ),
+
+          const SizedBox(width: 16),
+
+          _buildUserInfo(context),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // Header Action
+  // ============================================================
+
+  Widget _buildHeaderAction(
+    BuildContext context, {
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(
+        icon,
+        color: colorScheme.onSurfaceVariant,
+      ),
+      style: IconButton.styleFrom(
+        backgroundColor:
+            colorScheme.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // User Info
+  // ============================================================
+
+  Widget _buildUserInfo(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 5,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 15,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(
+              Icons.person_outline_rounded,
+              size: 18,
+              color: colorScheme.primary,
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          Text(
+            'المحاسب',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // Version
+  // ============================================================
+
+  Widget _buildVersion(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Text(
+      'v1.0.0',
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
 }
 
-// ============================================================
-// صفحة مؤقتة للأقسام التي لم يتم إنشاؤها بعد
-// ============================================================
+// ================================================================
+// App Section Model
+// ================================================================
 
-class PlaceholderPage extends StatelessWidget {
+class _AppSection {
   final String title;
+  final IconData icon;
+  final IconData selectedIcon;
+  final Widget page;
 
-  const PlaceholderPage({
-    super.key,
+  const _AppSection({
     required this.title,
+    required this.icon,
+    required this.selectedIcon,
+    required this.page,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
 }
